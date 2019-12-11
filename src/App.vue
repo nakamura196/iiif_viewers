@@ -1,9 +1,11 @@
 <template>
   <v-app>
-    <v-app-bar app>
-      <v-toolbar-title>
-        <span>IIIF Viewers</span>
-      </v-toolbar-title>
+    <v-app-bar>
+      <v-container>
+        <v-toolbar-title>
+          <span>IIIF Viewers</span>
+        </v-toolbar-title>
+      </v-container>
     </v-app-bar>
 
     <v-content>
@@ -42,15 +44,30 @@
                     </tr>
                     <tr v-if="properties.license != null">
                       <td class="py-2">License</td>
-                      <td class="py-2">{{ properties.license }}</td>
+                      <td class="py-2">
+                        <template v-if="properties.license.startsWith('http')">
+                          <a :href="properties.license">{{properties.license}}</a>
+                        </template>
+                        <template v-else>{{ properties.license }}</template>
+                      </td>
                     </tr>
                     <tr v-if="properties.related != null">
                       <td class="py-2">Related</td>
-                      <td class="py-2">{{ properties.related }}</td>
+                      <td class="py-2">
+                        <template v-if="properties.related.startsWith('http')">
+                          <a :href="properties.related">{{properties.related}}</a>
+                        </template>
+                        <template v-else>{{ properties.related }}</template>
+                      </td>
                     </tr>
                     <tr v-if="properties.within != null">
                       <td class="py-2">Within</td>
-                      <td class="py-2">{{ properties.within }}</td>
+                      <td class="py-2">
+                        <template v-if="properties.within.startsWith('http')">
+                          <a :href="properties.within">{{properties.within}}</a>
+                        </template>
+                        <template v-else>{{ properties.within }}</template>
+                      </td>
                     </tr>
                   </tbody>
                 </template>
@@ -134,66 +151,90 @@ export default {
     metadata: []
   }),
   mounted() {
-    let original_manifest = this.$route.query.manifest;
-    this.manifest = original_manifest;
-
-    if (this.manifest.indexOf(i3c_path) == -1) {
-      this.updated_manifest = i3c_path + this.manifest;
+    this.init();
+  },
+  watch: {
+    manifest: function() {
+      this.init();
     }
-
-    this.items.push({
-      text: "Mirador",
-      image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/mirador.png",
-      url: "http://da.dl.itc.u-tokyo.ac.jp/mirador/?manifest="
-    });
-    this.items.push({
-      text: "Universal Viewer",
-      image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/uv.png",
-      url: "http://universalviewer.io/examples/uv/uv.html#?manifest="
-    });
-
-    this.items.push({
-      text: "Image Annotator",
-      image: "https://www.kanzaki.com/parts/me128b.png",
-      url: "http://www.kanzaki.com/works/2016/pub/image-annotator?u="
-    });
-
-    this.items.push({
-      text: "IIIF Curation Viewer",
-      image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/icp.png",
-      url:
-        "http://codh.rois.ac.jp/software/iiif-curation-viewer/demo/?manifest="
-    });
-
-    this.items.push({
-      text: "KuroNetくずし字認識ビューア",
-      image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/icp.png",
-      url: "http://codh.rois.ac.jp/kuronet/iiif-curation-viewer/?manifest="
-    });
-
-    this.items.push({
-      text: "TIFY",
-      image: "https://avatars2.githubusercontent.com/u/31309906",
-      url: "http://tify.sub.uni-goettingen.de/demo.html?manifest="
-    });
-
-    this.items.push({
-      text: "Leaflet",
-      image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/leaflet.png",
-      url: "http://da.dl.itc.u-tokyo.ac.jp/leaflet/?manifest="
-    });
-
-    axios
-      .get(this.manifest)
-      .then(response => {
-        let result = response.data;
-        this.main(result);
-      })
-      .catch(error => {
-        console.log("E1\t" + error);
-      });
   },
   methods: {
+    init: function() {
+      this.items = [];
+      this.status = [];
+      this.metadata = [];
+      (this.manifest = null),
+        (this.updated_manifest = null),
+        (this.properties = {
+          description: null,
+          attribution: null,
+          license: null,
+          related: null,
+          within: null
+        });
+
+      if (!this.$route.query.manifest) {
+        return;
+      }
+      let original_manifest = this.$route.query.manifest;
+      this.manifest = original_manifest;
+
+      if (this.manifest.indexOf(i3c_path) == -1) {
+        this.updated_manifest = i3c_path + this.manifest;
+      }
+
+      this.items.push({
+        text: "Mirador",
+        image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/mirador.png",
+        url: "http://da.dl.itc.u-tokyo.ac.jp/mirador/?manifest="
+      });
+      this.items.push({
+        text: "Universal Viewer",
+        image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/uv.png",
+        url: "http://universalviewer.io/examples/uv/uv.html#?manifest="
+      });
+
+      this.items.push({
+        text: "Image Annotator",
+        image: "https://www.kanzaki.com/parts/me128b.png",
+        url: "http://www.kanzaki.com/works/2016/pub/image-annotator?u="
+      });
+
+      this.items.push({
+        text: "IIIF Curation Viewer",
+        image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/icp.png",
+        url:
+          "http://codh.rois.ac.jp/software/iiif-curation-viewer/demo/?manifest="
+      });
+
+      this.items.push({
+        text: "KuroNetくずし字認識ビューア",
+        image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/icp.png",
+        url: "http://codh.rois.ac.jp/kuronet/iiif-curation-viewer/?manifest="
+      });
+
+      this.items.push({
+        text: "TIFY",
+        image: "https://avatars2.githubusercontent.com/u/31309906",
+        url: "http://tify.sub.uni-goettingen.de/demo.html?manifest="
+      });
+
+      this.items.push({
+        text: "Leaflet",
+        image: "https://iiif.dl.itc.u-tokyo.ac.jp/images/leaflet.png",
+        url: "http://da.dl.itc.u-tokyo.ac.jp/leaflet/?manifest="
+      });
+
+      axios
+        .get(this.manifest)
+        .then(response => {
+          let result = response.data;
+          this.main(result);
+        })
+        .catch(error => {
+          console.log("E1\t" + error);
+        });
+    },
     main: function(result) {
       if (result["@type"] != "sc:Manifest") {
         return;
