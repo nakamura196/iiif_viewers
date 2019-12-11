@@ -18,7 +18,7 @@
               height="600"
               allowfullscreen
               frameborder="0"
-              v-show="manifest"
+              v-if="manifest"
             ></iframe>
           </v-col>
         </v-row>
