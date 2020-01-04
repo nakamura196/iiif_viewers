@@ -163,15 +163,15 @@ export default {
       this.items = [];
       this.status = [];
       this.metadata = [];
-      (this.manifest = null),
-        (this.updated_manifest = null),
-        (this.properties = {
-          description: null,
-          attribution: null,
-          license: null,
-          related: null,
-          within: null
-        });
+      this.manifest = null
+      this.updated_manifest = null
+      this.properties = {
+        description: null,
+        attribution: null,
+        license: null,
+        related: null,
+        within: null
+      };
 
       if (!this.$route.query.manifest) {
         return;
@@ -239,6 +239,8 @@ export default {
       if (result["@type"] != "sc:Manifest") {
         return;
       }
+
+      this.metadata = []
 
       let metadata = result["metadata"];
       for (let i = 0; i < metadata.length; i++) {
